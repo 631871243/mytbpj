@@ -17,6 +17,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    signingConfigs {
+        debug {
+            storeFile file("../release.jks")
+            storePassword "123456"
+            keyAlias "jan"
+            keyPassword "123456"
+            //不要使用v2签名，否则打完渠道包无法通过校验
+            v2SigningEnabled false
+        }
+
+        release {
+            storeFile file("../release.jks")
+            storePassword "123456"
+            keyAlias "jan"
+            keyPassword "123456"
+            //不要使用v2签名，否则打完渠道包无法通过校验
+            v2SigningEnabled false
+        }
+    }
 }
 
 dependencies {

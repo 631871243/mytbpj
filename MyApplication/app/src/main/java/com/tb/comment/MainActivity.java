@@ -2,6 +2,8 @@ package com.tb.comment;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -18,6 +20,7 @@ import android.os.Bundle;
 import com.bumptech.glide.Glide;
 import com.tb.comment.HttpUtil.HttpUtil;
 import com.tb.comment.util.DecimalUtil;
+import com.tb.comment.util.TbUtil;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -26,7 +29,9 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RelativeLayout mMainView,mMainPJAll,mMainPJ;
     private TextView mTitle,mPrice,mFavor,mPriceCount,mPrefixPrice,mPrefixFavor,mPrefixPriceCount,mDiscount;
     private ImageView mProduct,mWX,mBg;
-    private EditText mEditLoadUrl;
+    private EditText mEditLoadUrl,mEditPrice;
     private Handler mWorkHandler;
     private HandlerThread mWorkerThread = new HandlerThread("FragmentWorkerThread");
 
@@ -144,17 +149,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mTitle.setText((String)msg.obj);
                     break;
                 case MSG_SHOW_PRICE:
-                    String price = (String)msg.obj;
-                    if(price.contains("-")){
-                        int index = price.indexOf("-");
-                        price = price.substring(0,index);
+                    try {
+                        String price = (String)msg.obj;
+                        if(price.contains("-")){
+                            int index = price.indexOf("-");
+                            price = price.substring(0,index);
+                        }
+                        Log.i(TAG, "当前价格 ==="  + price);
+                        String priceCount = DecimalUtil.mul(price,"0.4") + "";
+                        String priceDisCount = DecimalUtil.mul(price,"0.6") + "";
+                        showPrice(price,mPrice);
+                        showPrice(priceCount,mPriceCount);
+                        showPrice(priceDisCount ,mDiscount);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-                    Log.i(TAG, "当前价格 ==="  + price);
-                    String priceCount = DecimalUtil.mul(price,"0.4") + "";
-                    String priceDisCount = DecimalUtil.mul(price,"0.6") + "";
-                    showPrice(price,mPrice);
-                    showPrice(priceCount,mPriceCount);
-                    showPrice(priceDisCount ,mDiscount);
 //                    Log.i(TAG, "价格显示完成，去点击累计评价按钮 ===" );
 //                    WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_CLICK_PINGJIA);
                     break;
@@ -204,11 +213,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPrefixFavor = (TextView)findViewById(R.id.prefix_favor);
         mPrefixPriceCount = (TextView)findViewById(R.id.prefix_price_count);
         mEditLoadUrl = (EditText) findViewById(R.id.load_url);
+        mEditPrice = (EditText) findViewById(R.id.et_price);
         initWebViewSetting();
         initWebViewClient();
         initWebChromeClient();
         mCurrentView = mTitle;
-        mWebView.loadUrl(/*"file:///android_asset/test.html"*/LOAD_URL);
+//        mWebView.loadUrl(/*"file:///android_asset/test.html"*/LOAD_URL);
         button.setOnClickListener(this);
         button2.setOnClickListener(this);
         button3.setOnClickListener(this);
@@ -228,6 +238,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        mPrefixFavor.setOnTouchListener(this);
 //        mPrefixPriceCount.setOnTouchListener(this);
 //        mWX.setOnTouchListener(this);
+        mEditPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int i, int i1, int i2) {
+                if(s.length() > 0){
+                    price = s.toString();
+                    Message msg = mWorkHandler.obtainMessage();
+                    msg.what = MSG_SHOW_PRICE;
+                    msg.obj = price;
+                    mWorkHandler.sendMessage(msg);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+    }
+
+    @Override
+    protected void onResume(){
+        ClipboardManager cm = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData data = cm.getPrimaryClip();
+        if(data != null){
+            ClipData.Item item = data.getItemAt(0);
+            String content = item.getText().toString();
+            mEditLoadUrl.setText(TbUtil.parserProductUrl(content));
+        }
+        super.onResume();
     }
 
     private void rotateAnimHorizonPJ() {
@@ -264,10 +308,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 saveBitap(map);
                 break;
             case R.id.btn_4:
+                price = "";
                 String url = mEditLoadUrl.getText().toString();
                 Log.i(TAG,"THE URL IS == " +url);
-                price = "";
-                mWebView.loadUrl(url);
+                if(url.startsWith("http") == false){
+                    mEditLoadUrl.setText("商品链接格式错误!!!");
+                }else{
+                    mEditLoadUrl.setText("正在加载商品链接...");
+                    mWebView.loadUrl(url);
+                }
                 break;
             case R.id.title:
                 mCurrentView = v;
@@ -297,10 +346,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fos.flush();
             fos.close();
         } catch (FileNotFoundException e) {
-            Log.i(TAG,"写文件异常,没有找到文件====="+e.getMessage());
             e.printStackTrace();
         } catch (IOException e) {
-            Log.i(TAG,"写文件异常,IO异常====="+e.getMessage());
             e.printStackTrace();
         }
         // 其次把文件插入到系统图库
@@ -331,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Log.i(TAG, "onTouch ===" );
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 lastX = event.getRawX();

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_pj_all"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/img"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:background="@android:color/white"/>
+    <RelativeLayout
+        android:id="@+id/main_pj"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp">
+        <RelativeLayout
+            android:id="@+id/up"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:background="@drawable/top8">
+            <TextView
+                android:id="@+id/prefix_discount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$"
+                android:textSize="16sp"
+                android:visibility="gone"/>
+            <TextView
+                android:id="@+id/discount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:layout_marginLeft="110dp"
+                android:layout_marginTop="40dp"
+                android:textColor="@android:color/holo_red_dark"
+                android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/get"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:textSize="20sp"/>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/down"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/up">
+
+            <ImageView
+                android:id="@+id/product_image"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:scaleType="fitXY"/>
+
+            <!--收藏字段隐藏-->
+            <TextView
+                android:id="@+id/favor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:visibility="invisible"/>
+
+            <TextView
+                android:id="@+id/prefix_favor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="收藏"
+                android:padding="10dp"
+                android:visibility="invisible"/>
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/product_image"
+                android:layout_toRightOf="@+id/product_image"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="5dp"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/prefix_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/title"
+                android:layout_toRightOf="@+id/product_image"
+                android:layout_marginLeft="10dp"
+                android:text="之前："/>
+
+            <TextView
+                android:id="@+id/prive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/prefix_price"
+                android:layout_toRightOf="@+id/prefix_price"/>
+
+            <TextView
+                android:id="@+id/prefix_price_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/prefix_price"
+                android:layout_toRightOf="@+id/product_image"
+                android:textColor="@android:color/white"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:text="使用后"
+                android:background="@android:color/holo_red_dark"/>
+
+            <TextView
+                android:id="@+id/prive_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/prefix_price_count"
+                android:layout_toRightOf="@+id/prefix_price_count"
+                android:textColor="@android:color/holo_red_dark"
+                android:layout_marginLeft="10dp"/>
+
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>
