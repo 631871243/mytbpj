@@ -3,4 +3,11 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <color name="color_shop_name">#D81B60</color>
+    <color name="color_deadline_title">#D81B60</color>
+    <color name="color_deadline">#D81B60</color>
+    <color name="color_product_title">#D81B60</color>
+    <color name="color_price">#D81B60</color>
+    <color name="color_discount_price">#D81B60</color>
 </resources>

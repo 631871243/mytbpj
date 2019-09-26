@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <include
-        layout="@layout/template_one"/>
+        layout="@layout/template_two"/>
+
     <ImageView
         android:id="@+id/wx"
         android:layout_width="250dp"

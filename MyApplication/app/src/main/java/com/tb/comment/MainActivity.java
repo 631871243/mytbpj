@@ -19,6 +19,8 @@ import android.os.Bundle;
 
 import com.bumptech.glide.Glide;
 import com.tb.comment.HttpUtil.HttpUtil;
+import com.tb.comment.TemplateView.TemplateView;
+import com.tb.comment.util.DateUtil;
 import com.tb.comment.util.DecimalUtil;
 import com.tb.comment.util.TbUtil;
 
@@ -80,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final static String UA = "ua";
     private final static String ISG = "isg";
     private WebView mWebView;
-    private final static String LOAD_URL = "https://detail.tmall.com/item.htm?id=546322281898";
+    private final static String LOAD_URL = "https://detail.tmall.com/item.htm?id=586788914676";
 
     private final static String JS_PRICE = "price.js";
     private final static String JS_TITLE = "title.js";
@@ -88,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final static String JS_SALES = "sales.js";
     private final static String JS_LOGIN = "login.js";
     private final static String JS_FAVOR = "favor.js";
+    private final static String JS_NAME = "name.js";
 
     private final static String JS_CLICK_PINGJIA = "clickpj.js";
     private final static String JS_SHOW_CONTENT_PINGJIA = "readPJ.js";
@@ -105,18 +108,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final static int MSG_SHOW_SALES = 11;
     private final static int MSG_SHOW_IMAGE = 12;
     private final static int MSG_LOAD_PJ_URL = 13;
+    private final static int MSG_LOAD_NAME_JS = 14;
+    private final static int MSG_SHOW_NAME = 15;
 
     private RelativeLayout mMainView,mMainPJAll,mMainPJ;
-    private TextView mTitle,mPrice,mFavor,mPriceCount,mPrefixPrice,mPrefixFavor,mPrefixPriceCount,mDiscount;
+    private TextView mTitle,mPrice,mFavor,mPriceCount,mPrefixPrice,mPrefixFavor,mPrefixPriceCount,mDiscount,mPrefixDeadline,mDeadline,mShopName;
     private ImageView mProduct,mWX,mBg;
     private EditText mEditLoadUrl,mEditPrice;
-    private Handler mWorkHandler;
-    private HandlerThread mWorkerThread = new HandlerThread("FragmentWorkerThread");
+    private Handler mUIHandler;
+    private HandlerThread mUIThread = new HandlerThread("FragmentWorkerThread");
 
     private View mCurrentView;
 
-    private String price,favor,title;
-
+    private String price,favor,title,name;
+    private TemplateView mTemplateView;
     private class WorkHandler extends Handler {
         public WorkHandler(Looper looper) {
             super(looper);
@@ -141,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_FAVOR);
                     WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_LOGIN);
                     WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_TITLE);
+                    WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_NAME);
                     break;
                 case MSG_LOAD_LOGIN_JS:
                     WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_LOGIN);
@@ -156,8 +162,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             price = price.substring(0,index);
                         }
                         Log.i(TAG, "当前价格 ==="  + price);
-                        String priceCount = DecimalUtil.mul(price,"0.4") + "";
-                        String priceDisCount = DecimalUtil.mul(price,"0.6") + "";
+                        String priceCount = DecimalUtil.mul(price,"0.5") + "";
+                        String priceDisCount = DecimalUtil.mul(price,"0.5") + "";
                         showPrice(price,mPrice);
                         showPrice(priceCount,mPriceCount);
                         showPrice(priceDisCount ,mDiscount);
@@ -180,8 +186,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case MSG_LOAD_CLICK_PJ_JS:
                     WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_CLICK_PINGJIA);
                     break;
+                case MSG_LOAD_NAME_JS:
+                    WebViewUtil.getInstance(MainActivity.this).loadJs(mWebView,JS_NAME);
+                    break;
                 case MSG_LOAD_SHOW_PJ_CONTENT:
 
+                    break;
+                case MSG_SHOW_NAME:
+                    name = (String)msg.obj;
+                    mShopName.setText(name);
                     break;
             }
         }
@@ -197,8 +210,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         button4 = (Button)findViewById(R.id.btn_4);
         mWebView = (WebView)findViewById(R.id.webview);
         mWX = (ImageView)findViewById(R.id.wx);
-        mWorkerThread.start();
-        mWorkHandler = new WorkHandler(Looper.getMainLooper());
+        mEditLoadUrl = (EditText) findViewById(R.id.load_url);
+        mEditPrice = (EditText) findViewById(R.id.et_price);
+        mUIThread.start();
+        mUIHandler = new WorkHandler(Looper.getMainLooper());
+        mTemplateView = new TemplateView(this);
+
+
         mMainView = (RelativeLayout) findViewById(R.id.main);
         mMainPJAll = (RelativeLayout) findViewById(R.id.main_pj_all);
         mMainPJ = (RelativeLayout) findViewById(R.id.main_pj);
@@ -209,11 +227,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mProduct = (ImageView)findViewById(R.id.product_image);
         mBg = (ImageView)findViewById(R.id.img);
         mPriceCount = (TextView)findViewById(R.id.prive_count);
-        mPrefixPrice = (TextView)findViewById(R.id.prefix_price);
+        mPrefixDeadline = (TextView)findViewById(R.id.deadline_title);
+        mDeadline = (TextView)findViewById(R.id.deadline);
+        mShopName = (TextView)findViewById(R.id.shop_title);
+        String mDeadLine = null;
+        int day = DateUtil.getDay();
+        int month = DateUtil.getMonth();
+        int year = DateUtil.getYear();
+        if(month == 12){
+            mDeadLine = (year + 1) + "." + 1 + "." + day + "-" + (year + 1) + "." + 2 + "." + day ;
+        }else{
+            mDeadLine = year + "." + month + "." + day + "-" + year + "." + (month + 1) + "." + day;
+        }
+        mDeadline.setText(mDeadLine);
+/*        mPrefixPrice = (TextView)findViewById(R.id.prefix_price);
         mPrefixFavor = (TextView)findViewById(R.id.prefix_favor);
-        mPrefixPriceCount = (TextView)findViewById(R.id.prefix_price_count);
-        mEditLoadUrl = (EditText) findViewById(R.id.load_url);
-        mEditPrice = (EditText) findViewById(R.id.et_price);
+        mPrefixPriceCount = (TextView)findViewById(R.id.prefix_price_count);*/
+
         initWebViewSetting();
         initWebViewClient();
         initWebChromeClient();
@@ -230,14 +260,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mPriceCount.setOnClickListener(this);
         mMainPJ.setOnTouchListener(this);
         mWX.setOnTouchListener(this);
-//        mTitle.setOnTouchListener(this);
-//        mPrice.setOnTouchListener(this);
-//        mFavor.setOnTouchListener(this);
-//        mPriceCount.setOnTouchListener(this);
-//        mPrefixPrice.setOnTouchListener(this);
-//        mPrefixFavor.setOnTouchListener(this);
-//        mPrefixPriceCount.setOnTouchListener(this);
-//        mWX.setOnTouchListener(this);
         mEditPrice.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -248,10 +270,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onTextChanged(CharSequence s, int i, int i1, int i2) {
                 if(s.length() > 0){
                     price = s.toString();
-                    Message msg = mWorkHandler.obtainMessage();
+                    Message msg = mUIHandler.obtainMessage();
                     msg.what = MSG_SHOW_PRICE;
                     msg.obj = price;
-                    mWorkHandler.sendMessage(msg);
+                    mUIHandler.sendMessage(msg);
                 }
             }
 
@@ -464,6 +486,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void readTAG(String favor) {
             parserTag(favor);
         }
+        @JavascriptInterface
+        public void readName(String favor) {
+            getName(favor);
+        }
+    }
+
+    private void getName(String name){
+        Log.i(TAG, "name ===" + name);
+        Message msg = mUIHandler.obtainMessage();
+        msg.what = MSG_SHOW_NAME;
+        msg.obj = name;
+        mUIHandler.sendMessage(msg);
     }
 
     private void getPJ(String favor){
@@ -471,10 +505,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.i(TAG, "getPJ ===" + favor);
         if(TextUtils.isEmpty(favor) == false){
             Log.i(TAG, "获取到了累计评价按钮的地址，点击他，然后他会加载评价内容 ===" );
-//            Message msg = mWorkHandler.obtainMessage();
+//            Message msg = mUIHandler.obtainMessage();
 //            msg.what = MSG_LOAD_SHOW_PJ_CONTENT;
 //            msg.obj = favor;
-//            mWorkHandler.sendMessageDelayed(msg,2 * 1000);
+//            mUIHandler.sendMessageDelayed(msg,2 * 1000);
         }
     }
 
@@ -546,10 +580,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     int endIndex = a.indexOf("<");
                     price = a.substring(startIndex + 1, endIndex);
                     Log.i(TAG, "price ===" + price);
-                    Message msg = mWorkHandler.obtainMessage();
+                    Message msg = mUIHandler.obtainMessage();
                     msg.what = MSG_SHOW_PRICE;
                     msg.obj = price;
-                    mWorkHandler.sendMessage(msg);
+                    mUIHandler.sendMessage(msg);
                 } else {
                     int start = salesHtml.indexOf(target);
                     String a = salesHtml.substring(start);
@@ -557,24 +591,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     int endIndex = a.indexOf("<");
                     price = a.substring(startIndex + 1, endIndex);
                     Log.i(TAG, "price ===" + price);
-                    Message msg = mWorkHandler.obtainMessage();
+                    Message msg = mUIHandler.obtainMessage();
                     msg.what = MSG_SHOW_PRICE;
                     msg.obj = price;
-                    mWorkHandler.sendMessage(msg);
+                    mUIHandler.sendMessage(msg);
                 }
             }
         }else{
             Log.i(TAG, "price ===" );
-            mWorkHandler.sendEmptyMessageDelayed(MSG_LOAD_PRICE_JS,2000);
+            mUIHandler.sendEmptyMessageDelayed(MSG_LOAD_PRICE_JS,2000);
         }
     }
 
     private void getImage(String salesHtml){
         Log.i(TAG, "image ===" + salesHtml);
-        Message msg = mWorkHandler.obtainMessage();
+        Message msg = mUIHandler.obtainMessage();
         msg.what = MSG_SHOW_IMAGE;
         msg.obj = salesHtml;
-        mWorkHandler.sendMessage(msg);
+        mUIHandler.sendMessage(msg);
     }
 
     private void getSales(String salesHtml){
@@ -587,13 +621,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int endIndex = a.indexOf("<");
                 favor = a.substring(startIndex + 1,endIndex);
                 Log.i(TAG, "sales ===" + favor);
-                Message msg = mWorkHandler.obtainMessage();
+                Message msg = mUIHandler.obtainMessage();
                 msg.what = MSG_SHOW_SALES;
                 msg.obj = favor;
-                mWorkHandler.sendMessage(msg);
+                mUIHandler.sendMessage(msg);
             }
         }else{
-            mWorkHandler.sendEmptyMessageDelayed(MSG_LOAD_SALES_JS,2000);
+            mUIHandler.sendEmptyMessageDelayed(MSG_LOAD_SALES_JS,2000);
         }
     }
 
@@ -601,12 +635,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.i(TAG, "favor ===" + salesHtml);
         if(TextUtils.isEmpty(salesHtml)){
             favor = salesHtml;
-            mWorkHandler.sendEmptyMessageDelayed(MSG_LOAD_FAVOR_JS,2000);
+            mUIHandler.sendEmptyMessageDelayed(MSG_LOAD_FAVOR_JS,2000);
         }else{
-            Message msg = mWorkHandler.obtainMessage();
+            Message msg = mUIHandler.obtainMessage();
             msg.what = MSG_SHOW_SALES;
             msg.obj = salesHtml;
-            mWorkHandler.sendMessage(msg);
+            mUIHandler.sendMessage(msg);
         }
     }
 
@@ -623,10 +657,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 int endIndex = a1.indexOf("<");
 
                 title = a1.substring(1,endIndex).trim();
-                Message msg = mWorkHandler.obtainMessage();
+                Message msg = mUIHandler.obtainMessage();
                 msg.what = MSG_SHOW_TITLE;
                 msg.obj = title;
-                mWorkHandler.sendMessage(msg);
+                mUIHandler.sendMessage(msg);
                 Log.i(TAG, "title ===   " + title);
             }
         }
@@ -666,8 +700,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onPageFinished(WebView view, String url) {
 //                Log.i(TAG, "onPageFinished ===" + url);
                 if(TextUtils.isEmpty(price)){
-                    mWorkHandler.removeMessages(MSG_LOAD__JS);
-                    mWorkHandler.sendEmptyMessageDelayed(MSG_LOAD__JS,3 * 1000);
+                    mUIHandler.removeMessages(MSG_LOAD__JS);
+                    mUIHandler.sendEmptyMessageDelayed(MSG_LOAD__JS,3 * 1000);
                 }
                 super.onPageFinished(view,url);
             }
